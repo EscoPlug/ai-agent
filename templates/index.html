@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Email Sender</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="templates/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="glow-indicator"></div>
+            <h1>Automated Email Sender</h1>
+            <p>Powered by AI Intelligence</p>
+        </div>
+
+        <form id="emailForm">
+            <div class="input-group">
+                <label for="name">Recipient Name</label>
+                <input type="text" id="name" placeholder="e.g. John Doe" required>
+            </div>
+
+            <div class="input-group">
+                <label for="role">Recipient Role / Company</label>
+                <input type="text" id="role" placeholder="e.g. CEO at Acme Corp" required>
+            </div>
+
+            <div class="input-group">
+                <label for="email">Recipient Email address</label>
+                <input type="email" id="email" placeholder="e.g. john@acme.com" required>
+            </div>
+
+            <div class="input-group">
+                <label for="context">Campaign Goal / Context</label>
+                <textarea id="context" rows="3" placeholder="What are we pitching or talking about?"
+                    required></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn">
+                <span class="btn-text">Generate & Send Email</span>
+                <div class="spinner" id="spinner"></div>
+            </button>
+        </form>
+
+        <div id="statusMessage" class="status-message"></div>
+    </div>
+
+    <script>
+        document.getElementById('emailForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('submitBtn');
+            const btnText = document.querySelector('.btn-text');
+            const spinner = document.getElementById('spinner');
+            const statusMsg = document.getElementById('statusMessage');
+
+            // Set loading state
+            btn.classList.add('loading');
+            btnText.style.display = 'none';
+            spinner.style.display = 'block';
+            statusMsg.className = 'status-message';
+            statusMsg.innerHTML = '';
+
+            const payload = {
+                name: document.getElementById('name').value,
+                role: document.getElementById('role').value,
+                email: document.getElementById('email').value,
+                context: document.getElementById('context').value
+            };
+
+            try {
+                const response = await fetch('/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    statusMsg.className = 'status-message success visible';
+                    statusMsg.innerHTML = `<strong>Sent!</strong><br>Topic: ${result.subject}`;
+                    // Optionally clear form
+                    // document.getElementById('emailForm').reset();
+                } else {
+                    statusMsg.className = 'status-message error visible';
+                    statusMsg.innerHTML = result.message;
+                }
+            } catch (error) {
+                statusMsg.className = 'status-message error visible';
+                statusMsg.innerHTML = 'Network error or server down.';
+            } finally {
+                // Remove loading state
+                btn.classList.remove('loading');
+                btnText.style.display = 'block';
+                spinner.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+
+</html>
